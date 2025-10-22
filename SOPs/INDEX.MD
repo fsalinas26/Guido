@@ -1,0 +1,1 @@
+Folder for SOP documents to initialize our vector database
