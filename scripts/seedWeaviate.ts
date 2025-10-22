@@ -3,8 +3,12 @@
  * Run with: npm run seed-weaviate
  */
 
-import { readFileSync, readdirSync } from 'fs';
+// Load environment variables
+import { config } from 'dotenv';
 import { join } from 'path';
+config({ path: join(process.cwd(), '.env.local') });
+
+import { readFileSync, readdirSync } from 'fs';
 import { getWeaviateClient, initializeWeaviateSchema, SOP_CHUNK_CLASS_NAME } from '@/lib/clients/weaviate';
 
 interface SOPChunk {
@@ -169,7 +173,7 @@ async function seedWeaviate() {
     console.log('✅ Schema initialized\n');
     
     // Get Weaviate client
-    const client = getWeaviateClient();
+    const client = await getWeaviateClient();
     const collection = client.collections.get(SOP_CHUNK_CLASS_NAME);
     
     // Read all SOP files
@@ -199,23 +203,22 @@ async function seedWeaviate() {
         
         // Upload chunks to Weaviate
         const objects = chunks.map(chunk => ({
-          properties: {
-            sop_id: chunk.sop_id,
-            sop_title: chunk.sop_title,
-            category: chunk.category,
-            chunk_text: chunk.chunk_text,
-            chunk_type: chunk.chunk_type,
-            step_number: chunk.step_number,
-            equipment_required: chunk.equipment_required,
-            measurements: chunk.measurements,
-            decision_point: chunk.decision_point,
-            safety_critical: chunk.safety_critical
-          }
+          sop_id: chunk.sop_id,
+          sop_title: chunk.sop_title,
+          category: chunk.category,
+          chunk_text: chunk.chunk_text,
+          chunk_type: chunk.chunk_type,
+          step_number: chunk.step_number || undefined,
+          equipment_required: chunk.equipment_required,
+          measurements: chunk.measurements,
+          decision_point: chunk.decision_point,
+          safety_critical: chunk.safety_critical,
+          page_number: chunk.page_number || undefined
         }));
         
         const result = await collection.data.insertMany(objects);
         
-        console.log(`  ✅ Uploaded ${result.uuids.length} chunks to Weaviate`);
+        console.log(`  ✅ Uploaded ${result.hasErrors ? 'with errors' : result.uuids?.length || objects.length} chunks to Weaviate`);
         
         // Show sample chunk for debugging
         if (chunks.length > 0) {

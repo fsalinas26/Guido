@@ -11,7 +11,7 @@ export async function retrieveSOPs(
   intent: IntentClassificationResult
 ): Promise<SOPRetrievalResult> {
   try {
-    const client = getWeaviateClient();
+    const client = await getWeaviateClient();
     
     // Build search query from user message and extracted entities
     const searchQuery = buildSearchQuery(userMessage, intent);

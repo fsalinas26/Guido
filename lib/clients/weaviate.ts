@@ -2,20 +2,24 @@
  * Weaviate client configuration
  */
 
-import weaviate, { WeaviateClient } from 'weaviate-client';
+import weaviate from 'weaviate-client';
+import type { WeaviateClient } from 'weaviate-client';
 
 let client: WeaviateClient | null = null;
 
-export function getWeaviateClient(): WeaviateClient {
+export async function getWeaviateClient(): Promise<WeaviateClient> {
   if (!client) {
     if (!process.env.WEAVIATE_URL || !process.env.WEAVIATE_API_KEY) {
       throw new Error('Weaviate environment variables not configured');
     }
 
-    client = weaviate.connectToWeaviateCloud(
+    client = await weaviate.connectToWeaviateCloud(
       process.env.WEAVIATE_URL,
       {
         authCredentials: new weaviate.ApiKey(process.env.WEAVIATE_API_KEY),
+        headers: {
+          'X-OpenAI-Api-Key': process.env.OPENAI_API_KEY || '',
+        }
       }
     );
   }
@@ -101,19 +105,35 @@ export const SOP_CHUNK_SCHEMA = {
  * Initialize Weaviate schema (run once during setup)
  */
 export async function initializeWeaviateSchema() {
-  const client = getWeaviateClient();
+  const client = await getWeaviateClient();
   
   try {
-    // Check if class already exists
-    const schema = await client.schema.getter().do();
-    const classExists = schema.classes?.some(c => c.class === SOP_CHUNK_CLASS_NAME);
+    // Check if collection already exists
+    const exists = await client.collections.exists(SOP_CHUNK_CLASS_NAME);
     
-    if (!classExists) {
-      console.log('Creating SOPChunk schema in Weaviate...');
-      await client.schema.classCreator().withClass(SOP_CHUNK_SCHEMA).do();
-      console.log('Schema created successfully');
+    if (!exists) {
+      console.log('Creating SOPChunk collection in Weaviate...');
+      await client.collections.create({
+        name: SOP_CHUNK_CLASS_NAME,
+        description: 'Standard Operating Procedure document chunks',
+        vectorizers: weaviate.configure.vectorizer.text2VecOpenAI(),
+        properties: [
+          { name: 'sop_id', dataType: 'text' },
+          { name: 'sop_title', dataType: 'text' },
+          { name: 'category', dataType: 'text' },
+          { name: 'chunk_text', dataType: 'text' },
+          { name: 'chunk_type', dataType: 'text' },
+          { name: 'step_number', dataType: 'int' },
+          { name: 'equipment_required', dataType: 'text[]' },
+          { name: 'measurements', dataType: 'text[]' },
+          { name: 'decision_point', dataType: 'boolean' },
+          { name: 'safety_critical', dataType: 'boolean' },
+          { name: 'page_number', dataType: 'int' }
+        ]
+      });
+      console.log('Collection created successfully');
     } else {
-      console.log('SOPChunk schema already exists');
+      console.log('SOPChunk collection already exists');
     }
   } catch (error) {
     console.error('Error initializing Weaviate schema:', error);
