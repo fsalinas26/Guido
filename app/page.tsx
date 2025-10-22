@@ -9,10 +9,23 @@ export default function HomePage() {
   const [transcript, setTranscript] = useState<Array<{role: string; content: string}>>([]);
   const [systemState, setSystemState] = useState<any>({
     currentAgent: null,
-    retrievedChunks: [],
+    retrievedSOP: null,
+    intent: null,
     toolExecutions: [],
     pipelineProgress: 0
   });
+
+  const handleSystemUpdate = (data: any) => {
+    console.log('🔄 handleSystemUpdate called with:', data);
+    setSystemState((prev: any) => {
+      const newState = {
+        ...prev,
+        ...data
+      };
+      console.log('📝 New system state:', newState);
+      return newState;
+    });
+  };
 
   return (
     <div className="h-screen flex bg-gray-100">
@@ -23,6 +36,7 @@ export default function HomePage() {
           setCallActive={setCallActive}
           transcript={transcript}
           setTranscript={setTranscript}
+          onSystemUpdate={handleSystemUpdate}
         />
       </div>
       

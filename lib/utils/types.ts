@@ -191,6 +191,19 @@ export interface AgentPipelineRequest {
 export interface AgentPipelineResponse {
   agentResponse: string;
   sessionState: ConversationState;
+  retrievedSOP?: {
+    sop_id: string;
+    sop_title: string;
+    chunks: Array<{
+      step_number?: number;
+      chunk_text: string;
+      chunk_type: string;
+      similarity: number;
+      sop_id: string;
+    }>;
+    source: string;
+  };
+  intent?: string;
   error?: string;
 }
 

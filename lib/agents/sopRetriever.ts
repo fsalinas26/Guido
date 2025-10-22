@@ -16,7 +16,7 @@ export async function retrieveSOPs(
     // Build search query from user message and extracted entities
     const searchQuery = buildSearchQuery(userMessage, intent);
     
-    console.log('Searching Weaviate for:', searchQuery);
+    console.log('🔍 Searching Weaviate for:', searchQuery);
     
     // Perform semantic search
     const collection = client.collections.get(SOP_CHUNK_CLASS_NAME);
@@ -26,7 +26,10 @@ export async function retrieveSOPs(
       returnMetadata: ['distance']
     });
     
+    console.log(`📊 Weaviate returned ${result.objects?.length || 0} chunks`);
+    
     if (!result.objects || result.objects.length === 0) {
+      console.log('⚠️ No SOPs found in Weaviate');
       // Return empty result if no SOPs found
       return {
         sop_id: 'NONE',
@@ -42,15 +45,21 @@ export async function retrieveSOPs(
     // Return the most relevant SOP
     const primarySOP = sopGroups[0];
     
+    console.log(`✅ Retrieved SOP: ${primarySOP.sop_id} - "${primarySOP.sop_title}"`);
+    console.log(`📚 Found ${primarySOP.chunks.length} relevant chunks from Weaviate`);
+    
+    const relevantChunks = primarySOP.chunks.map((chunk: any) => ({
+      step_number: chunk.step_number,
+      chunk_text: chunk.chunk_text,
+      chunk_type: chunk.chunk_type,
+      similarity: 1 - (chunk._distance || 0), // Convert distance to similarity
+      sop_id: chunk.sop_id
+    }));
+    
     return {
       sop_id: primarySOP.sop_id,
       sop_title: primarySOP.sop_title,
-      relevant_chunks: primarySOP.chunks.map((chunk: any) => ({
-        step_number: chunk.step_number,
-        chunk_text: chunk.chunk_text,
-        chunk_type: chunk.chunk_type,
-        similarity: 1 - (chunk._distance || 0) // Convert distance to similarity
-      })),
+      relevant_chunks: relevantChunks,
       full_sop_context: assembleSOPContext(primarySOP.chunks)
     };
     

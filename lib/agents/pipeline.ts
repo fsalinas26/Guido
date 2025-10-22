@@ -140,11 +140,18 @@ export async function runAgentPipeline(
     
     console.log('\n=== Agent Pipeline Complete ===\n');
     
-    // Return final response
+    // Return final response with retrieved SOP data
     const finalSession = getOrCreateSession(callId);
     return {
       agentResponse: finalResponse,
-      sessionState: finalSession
+      sessionState: finalSession,
+      retrievedSOP: {
+        sop_id: sopContext.sop_id,
+        sop_title: sopContext.sop_title,
+        chunks: sopContext.relevant_chunks,
+        source: 'Weaviate Cloud'
+      },
+      intent: intent.intent
     };
     
   } catch (error) {

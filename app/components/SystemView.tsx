@@ -6,6 +6,9 @@ interface SystemViewProps {
 }
 
 export function SystemView({ systemState, transcript }: SystemViewProps) {
+  console.log('🖥️ SystemView rendering with state:', systemState);
+  console.log('📊 Has retrievedSOP?', !!systemState.retrievedSOP);
+  
   const agents = [
     { id: 1, name: 'Intent Classifier', icon: '🎯', description: 'Identifies query intent' },
     { id: 2, name: 'SOP Retriever', icon: '🔍', description: 'Searches Weaviate for SOPs' },
@@ -72,14 +75,45 @@ export function SystemView({ systemState, transcript }: SystemViewProps) {
           </div>
         </div>
 
-        {/* Retrieved Data */}
-        {systemState.retrievedChunks.length > 0 && (
+        {/* Retrieved Data from Weaviate */}
+        {systemState.retrievedSOP && (
           <div className="mb-8">
-            <h3 className="text-lg font-semibold mb-4 text-gray-800">Retrieved SOP Chunks</h3>
-            <div className="bg-white rounded-lg p-4 border border-gray-200">
-              <p className="text-sm text-gray-600">
-                {systemState.retrievedChunks.length} chunks retrieved from {systemState.currentSOP}
-              </p>
+            <h3 className="text-lg font-semibold mb-4 text-gray-800 flex items-center gap-2">
+              <span>📊 Data Retrieved from Weaviate</span>
+            </h3>
+            <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-4 border-2 border-blue-300 mb-4">
+              <div className="flex items-start justify-between mb-2">
+                <div>
+                  <div className="font-bold text-blue-900 text-lg">{systemState.retrievedSOP.sop_id}</div>
+                  <div className="text-sm text-blue-700">{systemState.retrievedSOP.sop_title}</div>
+                </div>
+                <div className="bg-blue-600 text-white text-xs px-3 py-1 rounded-full font-semibold">
+                  {systemState.retrievedSOP.source}
+                </div>
+              </div>
+              <div className="mt-3 pt-3 border-t border-blue-200">
+                <div className="text-sm font-semibold text-blue-900 mb-2">
+                  📚 {systemState.retrievedSOP.chunks?.length || 0} chunks retrieved
+                </div>
+              </div>
+            </div>
+            
+            {/* Show Retrieved Chunks */}
+            <div className="space-y-2 max-h-96 overflow-y-auto">
+              {systemState.retrievedSOP.chunks?.map((chunk: any, idx: number) => (
+                <div key={idx} className="bg-white rounded-lg p-3 border border-gray-200 hover:border-blue-300 transition-colors">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs font-semibold text-blue-600 uppercase">
+                      {chunk.chunk_type}
+                      {chunk.step_number && ` - Step ${chunk.step_number}`}
+                    </span>
+                    <span className="text-xs text-gray-500">
+                      Similarity: {(chunk.similarity * 100).toFixed(1)}%
+                    </span>
+                  </div>
+                  <p className="text-sm text-gray-700 line-clamp-3">{chunk.chunk_text}</p>
+                </div>
+              ))}
             </div>
           </div>
         )}
