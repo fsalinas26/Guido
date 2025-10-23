@@ -12,7 +12,7 @@ export function getFriendliClient(): OpenAI {
     const useFriendli = process.env.FRIENDLI_API_KEY && process.env.USE_FRIENDLI === 'true';
     
     if (useFriendli) {
-      const baseURL = process.env.FRIENDLI_BASE_URL || process.env.FRIENDLY_ENDPOINT || 'https://api.friendli.ai/serverless/v1';
+      const baseURL = process.env.FRIENDLI_BASE_URL|| 'https://api.friendli.ai/serverless/v1';
       const teamId = process.env.FRIENDLI_TEAM_ID;
       
       const defaultHeaders: Record<string, string> = {};
