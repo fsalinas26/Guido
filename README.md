@@ -1,6 +1,14 @@
+# AI Hack Day at the AWS GenAI Loft - First Place 🏆
+
 # Guido - AI Manufacturing Supervisor
 
+
+
 Voice-enabled AI assistant for manufacturing Standard Operating Procedures (SOPs) using multi-agent orchestration.
+
+<img width="3112" height="827" alt="Untitled-2025-10-22-1321" src="https://github.com/user-attachments/assets/434dcdf6-5304-4084-b7c2-80bc014ef70e" />
+
+
 
 ## 🎯 Project Overview
 
